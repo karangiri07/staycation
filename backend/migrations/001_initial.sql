@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS properties (id SERIAL PRIMARY KEY, name VARCHAR(160) NOT NULL, category VARCHAR(30) NOT NULL, location VARCHAR(180) NOT NULL, price VARCHAR(60) NOT NULL, original_price VARCHAR(60) NOT NULL DEFAULT '', tag VARCHAR(80) NOT NULL DEFAULT '', description TEXT NOT NULL DEFAULT '', image_url TEXT NOT NULL DEFAULT '', image_public_id VARCHAR(255) NOT NULL DEFAULT '', published BOOLEAN NOT NULL DEFAULT TRUE);
+CREATE INDEX IF NOT EXISTS ix_properties_category ON properties(category);
+CREATE INDEX IF NOT EXISTS ix_properties_published ON properties(published);
+CREATE TABLE IF NOT EXISTS reels (id SERIAL PRIMARY KEY, title VARCHAR(160) NOT NULL, video_url TEXT NOT NULL, public_id VARCHAR(255) NOT NULL DEFAULT '', published BOOLEAN NOT NULL DEFAULT FALSE, views INTEGER NOT NULL DEFAULT 0, duration INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX IF NOT EXISTS ix_reels_published ON reels(published);
+CREATE TABLE IF NOT EXISTS property_images (id SERIAL PRIMARY KEY, property_id INTEGER NOT NULL REFERENCES properties(id) ON DELETE CASCADE, url TEXT NOT NULL, public_id VARCHAR(255) NOT NULL DEFAULT '', position INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX IF NOT EXISTS ix_property_images_property_id ON property_images(property_id);
+CREATE TABLE IF NOT EXISTS settings (key VARCHAR(80) PRIMARY KEY, value TEXT NOT NULL DEFAULT '');
+CREATE TABLE IF NOT EXISTS subscribers (id SERIAL PRIMARY KEY, email VARCHAR(254) NOT NULL UNIQUE, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+CREATE INDEX IF NOT EXISTS ix_subscribers_email ON subscribers(email);
+CREATE INDEX IF NOT EXISTS ix_subscribers_created_at ON subscribers(created_at);
+CREATE TABLE IF NOT EXISTS login_attempts (id SERIAL PRIMARY KEY, ip VARCHAR(64) NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+CREATE INDEX IF NOT EXISTS ix_login_attempts_created_at ON login_attempts(created_at);
+CREATE INDEX IF NOT EXISTS ix_login_attempts_ip_created_at ON login_attempts(ip, created_at);
+CREATE TABLE IF NOT EXISTS error_logs (id SERIAL PRIMARY KEY, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), method VARCHAR(10) NOT NULL DEFAULT '', path VARCHAR(300) NOT NULL DEFAULT '', message VARCHAR(500) NOT NULL DEFAULT '');
+CREATE INDEX IF NOT EXISTS ix_error_logs_created_at ON error_logs(created_at);

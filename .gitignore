@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+__pycache__/
+.venv/
+.env.local
+*.db
+*.db-wal
+*.db-shm
+*.db.bak
+venv/
+.vercel/
+*.zip
+Thumbs.db
+desktop.ini

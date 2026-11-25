@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: staycation
+      POSTGRES_USER: staycation
+      POSTGRES_PASSWORD: staycation
+    ports: ["5432:5432"]
+    volumes: ["staycation-data:/var/lib/postgresql/data"]
+  api:
+    build: ./backend
+    env_file: ./backend/.env
+    ports: ["8000:8000"]
+    depends_on: [db]
+volumes:
+  staycation-data:

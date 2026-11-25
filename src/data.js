@@ -1,0 +1,8 @@
+export const properties=[
+{name:'Riverdale Farmhouse',category:'Farmhouse',location:'Vasai, Maharashtra',price:'₹12,000',tag:'FEATURED',image:'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1000&q=85',search:'riverdale farmhouse vasai pool garden'},
+{name:'Palm Bliss Villa',category:'Villa',location:'Virar, Maharashtra',price:'₹8,500',tag:'POPULAR',image:'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1000&q=85',search:'palm bliss villa virar swimming pool'},
+{name:'The Hills Resort',category:'Resort',location:'Igatpuri, Maharashtra',price:'₹15,000',tag:'GREAT ESCAPE',image:'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1000&q=85',search:'the hills resort igatpuri mountain nature'},
+{name:'Green Escape Farm',category:'Farmhouse',location:'Alibaug, Maharashtra',price:'₹10,000',tag:'NEW',image:'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1000&q=85',search:'green escape farmhouse alibaug lawn'},
+{name:'Sunset View Villa',category:'Villa',location:'Lonavala, Maharashtra',price:'₹13,500',tag:'SCENIC VIEW',image:'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1000&q=85',search:'sunset view villa lonavala hill view'},
+{name:'Palm Grove Resort',category:'Resort',location:'Nashik, Maharashtra',price:'₹9,500',tag:'RELAX & UNWIND',image:'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1000&q=85',search:'palm grove resort nashik pool'}];
+export const reels=['DfMM3-6s5Kl','De30XeTNPe3','DeoQS4UsnPW','Dd3cRAINYuz','Dbz3MxIy7ez'];

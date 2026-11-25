@@ -1,0 +1,20 @@
+STAYCATION ADMIN CMS - kaise lagana hai
+=======================================
+Backend aur frontend DONO files saath mein replace karni hain (naya admin naye backend endpoints use karta hai).
+
+1) Is zip ke andar ki files apne project mein usi path par replace karo (backend/... aur src/...).
+2) backend/.env mein ye teen cheezein zaroor badlo:
+     JWT_SECRET=<lamba random>      ->  python -c "import secrets;print(secrets.token_urlsafe(48))"
+     ADMIN_PASSWORD=<strong password, 10+ characters>
+     APP_ENV=production            (sirf live server par)
+   Live server par proxy (Render/Nginx) ke peeche ho to TRUST_PROXY=true rehne do.
+3) Backend restart karo. Naye columns (views, duration, original_price) apne aap add ho jaate hain, purana data safe rehta hai.
+   Agar naya package chahiye:  pip install -r backend/requirements.txt
+4) Frontend restart karo (npm run dev) aur browser mein Ctrl+Shift+R.
+5) Website par /admin kholo, login karo, Settings mein jaake password badlo.
+
+Roz ka use
+- Dashboard: properties, reels, views, email sign-ups, system check.
+- Email Signup card: search, page by page list, Export CSV (Excel/Google Sheets mein khulta hai).
+- Settings > Download full backup: kabhi kabhi download karke rakh lo.
+- Settings > Recent errors: kuch fail ho to wajah yahin likhi milti hai.

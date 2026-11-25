@@ -1,0 +1,36 @@
+.pif { margin: 14px 0; }
+.pif-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.pif-title { font-weight: 700; }
+.ad-card .pif-add {
+  padding: 10px 16px; border: 1px solid #f2b685; border-radius: 10px;
+  color: #b9580b; background: #fff1e5; font-weight: 800; cursor: pointer;
+}
+.ad-card .pif-add:hover:not(:disabled) { background: #ffe3cb; }
+.ad-card .pif-add:disabled { opacity: 0.65; cursor: default; }
+.pif-hint { margin: 6px 0 12px; color: #697487; font-size: 13px; line-height: 1.5; }
+.pif-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.pif-item { position: relative; overflow: hidden; border: 2px solid #e9e5df; border-radius: 12px; background: #fff; }
+.pif-item.cover { border-color: #f28a38; }
+.pif-item img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: #f4f2ee; }
+.pif-badge {
+  position: absolute; left: 6px; top: 6px; padding: 4px 8px; border-radius: 999px;
+  color: #fff; background: #f28a38; font-size: 10px; font-weight: 800; letter-spacing: 0.06em;
+}
+.ad-card .pif-remove {
+  position: absolute; right: 6px; top: 6px; display: grid; place-items: center;
+  width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%;
+  color: #b42318; background: #ffffffec; box-shadow: 0 2px 8px #0003;
+  font-size: 18px; line-height: 1; cursor: pointer;
+}
+.ad-card .pif-remove:hover { color: #fff; background: #d92d20; }
+.pif-actions { display: flex; align-items: center; gap: 4px; padding: 6px; }
+.ad-card .pif-actions button {
+  min-width: 0; padding: 6px 0; border: 1px solid #e3dfd8; border-radius: 8px;
+  color: #354156; background: #faf8f5; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.ad-card .pif-actions .step { flex: 0 0 34px; }
+.ad-card .pif-actions .cover-btn { flex: 1; white-space: nowrap; }
+.ad-card .pif-actions button:hover:not(:disabled) { background: #fff1e5; border-color: #f2b685; }
+.ad-card .pif-actions button:disabled { opacity: 0.35; cursor: default; }
+.pif-cover-note { flex: 1; text-align: center; color: #b9580b; font-size: 12px; font-weight: 800; white-space: nowrap; }
+.pif-problems { margin: 10px 0 0; padding-left: 18px; color: #b42318; font-size: 13px; line-height: 1.5; }

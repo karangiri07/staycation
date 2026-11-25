@@ -1,0 +1,35 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Staycation: prepare and start",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-Command",
+				"$ErrorActionPreference = 'Stop'; $root = (Get-Location).Path; if (-not (Test-Path 'backend\\.env')) { $jwt = [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(48)).TrimEnd('=').Replace('+','-').Replace('/','_'); $admin = [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(24)).TrimEnd('=').Replace('+','-').Replace('/','_'); @(\"DATABASE_URL=postgresql+psycopg://staycation:staycation@db:5432/staycation\", \"JWT_SECRET=$jwt\", 'JWT_EXPIRE_MINUTES=60', 'ADMIN_USERNAME=stayadmin', \"ADMIN_PASSWORD=$admin\", 'CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173', 'CLOUDINARY_CLOUD_NAME=', 'CLOUDINARY_API_KEY=', 'CLOUDINARY_API_SECRET=') | Set-Content -Path 'backend\\.env' -Encoding utf8; Write-Output 'Created backend\\.env with new local secrets.' } else { Write-Output 'Keeping existing backend\\.env; it was not overwritten.' }; if (-not (Test-Path '.env')) { 'VITE_API_URL=http://localhost:8000' | Set-Content -Path '.env' -Encoding utf8; Write-Output 'Created frontend .env.' } else { Write-Output 'Keeping existing frontend .env; it was not overwritten.' }; $node = Get-Command node -ErrorAction Stop; $npm = Get-Command npm -ErrorAction Stop; $docker = Get-Command docker -ErrorAction Stop; Write-Output ('Node: ' + (& node --version)); Write-Output ('npm: ' + (& npm --version)); Write-Output ('Docker: ' + (& docker --version)); docker info | Out-Null; if ($LASTEXITCODE -ne 0) { throw 'Docker Desktop is not running or is unavailable.' }; docker compose up -d db; if ($LASTEXITCODE -ne 0) { throw 'Failed to start PostgreSQL.' }; Start-Sleep -Seconds 5; docker compose up -d --build api; if ($LASTEXITCODE -ne 0) { throw 'Failed to build/start the API.' }; npm install; if ($LASTEXITCODE -ne 0) { throw 'npm install failed.' }; Write-Output 'Backend and dependencies are ready. Starting the Vite development server...'; npm run dev -- --host 127.0.0.1"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Staycation: local setup",
+			"type": "shell",
+			"command": "powershell.exe",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				".vscode\\staycation-local-setup.ps1"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}
