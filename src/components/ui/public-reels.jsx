@@ -61,7 +61,10 @@ function writeLikes(list) {
 // Where a reel stands when it is not playing (the same first frame the card shows when the page loads).
 const START = 0.1;
 
-function ReelCard({ reel, index, reducedMotion, isDemo, isPlaying, auto, userPause, onToggle, onEnded, onBlocked, photo, handle, liked, onLike }) {
+// Browsers keep sound off until the visitor has clicked or pressed a key on the page once.
+const canHear = () => typeof navigator === 'undefined' || !navigator.userActivation || navigator.userActivation.hasBeenActive;
+
+function ReelCard({ reel, index, reducedMotion, isDemo, isPlaying, hovered, auto, userPause, onToggle, onEnded, onBlocked, onHoverIn, onHoverOut, photo, handle, liked, onLike }) {
   const counted = useRef(false);
   const videoRef = useRef(null);
   const linkOnly = isDemo || isInstagram(reel);
@@ -76,14 +79,26 @@ function ReelCard({ reel, index, reducedMotion, isDemo, isPlaying, auto, userPau
     if (!video) return;
     if (isPlaying) {
       // A reel that starts by itself always starts silent (browsers refuse sound without a tap).
+      // With the mouse on the card it plays with sound.
+      const loud = hovered && !auto;
       if (auto && !muted) setMuted(true);
-      video.muted = auto ? true : muted;
+      if (loud && muted) setMuted(false);
+      video.muted = auto ? true : loud ? false : muted;
       // A reel that starts by itself always starts from the beginning.
       if (auto) video.currentTime = START;
       const attempt = video.play();
       if (attempt && attempt.catch) {
         attempt.catch((error) => {
-          if (error.name !== 'AbortError') onBlocked();
+          if (error.name === 'AbortError') return;
+          if (!video.muted) {
+            // The browser refused the sound: play it silent instead. The sound comes on with the first click or key press.
+            video.muted = true;
+            setMuted(true);
+            const again = video.play();
+            if (again && again.catch) again.catch((retryError) => { if (retryError.name !== 'AbortError') onBlocked(); });
+            return;
+          }
+          onBlocked();
         });
       }
     } else {
@@ -98,6 +113,42 @@ function ReelCard({ reel, index, reducedMotion, isDemo, isPlaying, auto, userPau
   useEffect(() => {
     if (videoRef.current) videoRef.current.muted = muted;
   }, [muted]);
+
+  // Mouse on the card: its sound comes on. Mouse off: back to silent.
+  const wasHovered = useRef(false);
+  const firstTap = useRef(false);
+  useEffect(() => {
+    if (hovered) {
+      wasHovered.current = true;
+      if (isPlaying && muted && canHear()) setMuted(false); // a reel that was already playing by itself
+    } else if (wasHovered.current) {
+      wasHovered.current = false;
+      setMuted(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hovered]);
+
+  // Before the visitor's first click or key press the browser keeps the sound off, so the reel plays silent
+  // and the sound comes on with that first click or key press.
+  useEffect(() => {
+    if (!hovered || !isPlaying || !muted || canHear()) return undefined;
+    const turnOn = (event) => {
+      const target = event.target;
+      if (target && target.closest && target.closest('.reel-mute')) return; // that button does it itself
+      if (event.type === 'pointerdown' && target && target.closest && target.closest('.reel-media')) {
+        firstTap.current = true; // this click only turns the sound on, it does not pause the reel
+        setTimeout(() => { firstTap.current = false; }, 1000);
+      }
+      // Keys like Shift or Ctrl do not count as a click for the browser, so only go on once it has really counted one.
+      setTimeout(() => { if (canHear()) setMuted(false); }, 0);
+    };
+    window.addEventListener('pointerdown', turnOn, true);
+    window.addEventListener('keydown', turnOn, true);
+    return () => {
+      window.removeEventListener('pointerdown', turnOn, true);
+      window.removeEventListener('keydown', turnOn, true);
+    };
+  }, [hovered, isPlaying, muted]);
 
   const chipLabel = isDemo ? 'Demo reel' : `Reel ${String(index + 1).padStart(2, '0')}`;
   const time = formatTime(duration);
@@ -133,6 +184,8 @@ function ReelCard({ reel, index, reducedMotion, isDemo, isPlaying, auto, userPau
   return (
     <motion.article
       className={`reel-card${isPlaying ? ' is-playing' : ''}${liked ? ' is-liked' : ''}`}
+      onPointerEnter={(event) => { if (event.pointerType === 'mouse') onHoverIn(reel.id); }}
+      onPointerLeave={(event) => { if (event.pointerType === 'mouse') onHoverOut(reel.id); }}
       initial={reducedMotion ? false : { opacity: 0, y: 28 }}
       whileInView={reducedMotion ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.15 }}
@@ -152,7 +205,13 @@ function ReelCard({ reel, index, reducedMotion, isDemo, isPlaying, auto, userPau
         <button
           type="button"
           className="reel-media"
-          onClick={() => onToggle(reel.id)}
+          onClick={() => {
+            if (firstTap.current) {
+              firstTap.current = false;
+              if (canHear()) return;
+            }
+            onToggle(reel.id);
+          }}
           aria-label={`${isPlaying ? 'Pause' : 'Play'} ${title}`}
         >
           {media}
@@ -215,6 +274,9 @@ export default function PublicReels() {
   const [autoIndex, setAutoIndex] = useState(null);
   const [hold, setHold] = useState(false);
   const [finished, setFinished] = useState(false);
+  // The card the mouse is on (it plays with sound), and which card's play the mouse started (so moving away stops it).
+  const [hover, setHover] = useState(null);
+  const hoverOwned = useRef(null);
   const finishedRef = useRef(false);
   const quiet = useRef(0);
   const settle = useRef(0);
@@ -333,6 +395,8 @@ export default function PublicReels() {
       setFinished(false);
       setHold(false);
       setAutoIndex(null);
+      setHover(null);
+      hoverOwned.current = null;
     }
   }, [inView]);
   // Swiping to another card ends a pause, so the next reel starts by itself.
@@ -371,6 +435,23 @@ export default function PublicReels() {
     }
     setFinished(false);
     setManual(playingId === id ? 'paused' : id);
+  };
+  // Mouse on a reel: it plays by itself, with sound. Mouse off: the reels carry on by themselves again.
+  const hoverIn = (id) => {
+    const position = items.findIndex((item) => item.id === id);
+    if (reducedMotion || isDemo || position < 0 || isInstagram(items[position])) return;
+    if (visible.length > 0 && !visible.includes(position)) return; // a card only peeking in waits for a tap
+    setFinished(false);
+    setHover(id);
+    if (manual !== id) hoverOwned.current = id;
+    setManual(id);
+  };
+  const hoverOut = (id) => {
+    setHover((current) => (current === id ? null : current));
+    if (hoverOwned.current === id) {
+      hoverOwned.current = null;
+      setManual((current) => (current === id ? null : current));
+    }
   };
   // A reel reached its end: the next one starts. After the last one the carousel goes back to the first reel and stops.
   const advance = (id) => {
@@ -465,11 +546,14 @@ export default function PublicReels() {
                 reducedMotion={reducedMotion}
                 isDemo={isDemo}
                 isPlaying={playingId === reel.id}
+                hovered={hover === reel.id}
                 auto={manual === null}
                 userPause={manual === 'paused'}
                 onToggle={toggle}
                 onEnded={advance}
                 onBlocked={() => setManual('paused')}
+                onHoverIn={hoverIn}
+                onHoverOut={hoverOut}
                 photo={creator.photo}
                 handle={handle}
                 liked={likes.includes(reel.id)}
