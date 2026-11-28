@@ -621,3 +621,19 @@
   .reel-card.is-liked .reel-like svg { animation: none; }
   .reel-track { scroll-behavior: auto; }
 }
+
+/* Placeholders while the server wakes up (instead of demo reels) */
+.reel-card.reel-waiting {
+  pointer-events: none;
+  background: linear-gradient(100deg, #eadfd1 30%, #f6eee4 50%, #eadfd1 70%);
+  background-size: 200% 100%;
+  animation: reel-wait 1.4s linear infinite;
+}
+
+@keyframes reel-wait {
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reel-card.reel-waiting { animation: none; }
+}

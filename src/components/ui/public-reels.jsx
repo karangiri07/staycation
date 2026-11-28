@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { properties } from '../../data.js';
 import { INSTAGRAM_REELS_URL, handleOf, useCreator } from '../../lib/creator.js';
+import { getJson } from '../../lib/wake.js';
 import './public-reels.css';
 
 const API = import.meta.env.VITE_API_URL || '';
@@ -255,6 +256,7 @@ export default function PublicReels() {
   const creator = useCreator(API);
   const [reels, setReels] = useState([]);
   const [error, setError] = useState('');
+  const [waiting, setWaiting] = useState(true);
   const reducedMotion = useReducedMotion();
   const [likes, setLikes] = useState(readLikes);
 
@@ -282,26 +284,24 @@ export default function PublicReels() {
   const settle = useRef(0);
   finishedRef.current = finished;
 
+  // The server may be asleep: keep asking until it answers instead of showing demo reels meanwhile.
   useEffect(() => {
-    let alive = true;
-    fetch(`${API}/api/reels`)
-      .then((response) => {
-        if (!response.ok) throw new Error('Published reels are temporarily unavailable.');
-        return response.json();
-      })
+    const stop = new AbortController();
+    getJson(`${API}/api/reels`, { signal: stop.signal })
       .then((list) => {
-        if (alive && Array.isArray(list)) setReels(list);
+        if (Array.isArray(list)) setReels(list);
+        setWaiting(false);
       })
-      .catch((requestError) => {
-        if (alive) setError(requestError.message);
+      .catch(() => {
+        if (stop.signal.aborted) return;
+        setError('Published reels are temporarily unavailable.');
+        setWaiting(false);
       });
-    return () => {
-      alive = false;
-    };
+    return () => stop.abort();
   }, []);
 
-  const isDemo = reels.length === 0;
-  const items = isDemo ? demoReels : reels;
+  const isDemo = !waiting && reels.length === 0;
+  const items = waiting ? [] : isDemo ? demoReels : reels;
 
   const stepOf = () => {
     const track = trackRef.current;
@@ -537,7 +537,8 @@ export default function PublicReels() {
         </div>
 
         <div className="reels-stage">
-          <div className="reel-track" ref={trackRef} aria-label="Featured reels">
+          <div className="reel-track" ref={trackRef} aria-label="Featured reels" aria-busy={waiting}>
+            {waiting && [0, 1, 2, 3].map((slot) => <div className="reel-card reel-waiting" key={slot} aria-hidden="true" />)}
             {items.map((reel, index) => (
               <ReelCard
                 key={reel.id}
@@ -581,6 +582,12 @@ export default function PublicReels() {
           ) : (
             <p className="reel-counter">{active + 1} / {items.length}</p>
           )
+        )}
+
+        {waiting && (
+          <p className="reels-note" role="status">
+            <span>Getting the reels ready… the first visit can take up to a minute.</span>
+          </p>
         )}
 
         {(error || isDemo) && (
